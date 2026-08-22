@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Pan Masala & Scented Tobacco Calculator</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+    padding: 24px;
+    color: #1f2937;
+  }
+  #mainContent { display: none; }
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(17, 24, 39, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+  .modal-box {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 28px 24px;
+    max-width: 320px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  }
+  .modal-box p {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 20px 0;
+  }
+  .modal-box button {
+    background: #111827;
+    color: #fff;
+    border: none;
+    padding: 10px 32px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .modal-box button:active {
+    background: #2563eb;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  h1 {
+    text-align: center;
+    font-size: 22px;
+    color: #111827;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  .qty-box {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .qty-box label {
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .qty-box input {
+    width: 140px;
+    padding: 10px 12px;
+    font-size: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    outline: none;
+  }
+  .qty-box input:focus {
+    border-color: #2563eb;
+  }
+  .qty-box .hint {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 700px) {
+    .cards { grid-template-columns: 1fr; }
+    body { padding: 12px; }
+    .qty-box { padding: 16px; }
+    .grand-total { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .grand-total .amt { font-size: 20px; }
+  }
+  .card {
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .card-header {
+    background: #111827;
+    color: #fff;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  td {
+    padding: 10px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  td.label {
+    color: #374151;
+  }
+  td.value {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: #111827;
+  }
+  tr.total td {
+    font-weight: 700;
+    font-size: 15px;
+    background: #f0fdf4;
+    color: #166534;
+    border-bottom: none;
+  }
+  .grand-total {
+    margin-top: 24px;
+    background: #111827;
+    color: #fff;
+    border-radius: 10px;
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 17px;
+    font-weight: 700;
+  }
+  .grand-total .amt {
+    color: #4ade80;
+  }
+</style>
+</head>
+<body>
+<div class="modal-overlay" id="dateModal">
+  <div class="modal-box">
+    <p>Please check invoice date</p>
+    <button onclick="dismissModal()">OK</button>
+  </div>
+</div>
+
+<div class="container" id="mainContent">
+  <h1>Calculator</h1>
+
+  <div class="qty-box">
+    <label for="qty">Quantity (BAG):</label>
+    <input type="number" id="qty" min="0" step="1" placeholder="Enter qty" oninput="calculate()">
+    <span class="hint">Same quantity applies to both products</span>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-header">2100 PAN MASALA</div>
+      <table>
+        <tr><td class="label">Taxable Value Selling Price</td><td class="value" id="pm_taxable">-</td></tr>
+        <tr><td class="label">CGST 20%</td><td class="value" id="pm_cgst">-</td></tr>
+        <tr><td class="label">SGST 20%</td><td class="value" id="pm_sgst">-</td></tr>
+        <tr><td class="label">Round Off</td><td class="value" id="pm_round">-</td></tr>
+        <tr class="total"><td>Total Invoice Value</td><td class="value" id="pm_total">-</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-header">21 SCENTED TOBACCO</div>
+      <table>
+        <tr><td class="label">Taxable Value Selling Price</td><td class="value" id="st_taxable">-</td></tr>
+        <tr><td class="label">NCCD</td><td class="value" id="st_nccd">-</td></tr>
+        <tr><td class="label">Total Taxable Value</td><td class="value" id="st_total_taxable">-</td></tr>
+        <tr><td class="label">CGST 20%</td><td class="value" id="st_cgst">-</td></tr>
+        <tr><td class="label">SGST 20%</td><td class="value" id="st_sgst">-</td></tr>
+        <tr><td class="label">Round Off</td><td class="value" id="st_round">-</td></tr>
+        <tr class="total"><td>Total Invoice Value</td><td class="value" id="st_total">-</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top: 28px; font-size: 13px; color: #9ca3af;">
+    Prepared by Himanshu Jangid
+  </div>
+</div>
+
+<script>
+function dismissModal() {
+  document.getElementById('dateModal').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'block';
+}
+
+// Fixed per-bag rates (MRP hidden, used only internally)
+const RATES = {
+  panMasala: {
+    mrp: 26784.00,
+    taxableValue: 12027.43
+  },
+  scentedTobacco: {
+    mrp: 6696.00,
+    taxableValue: 2253.56,
+    nccd: 753.30
+  }
+};
+
+function fmt(n) {
+  return '₹ ' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtWhole(n) {
+  return '₹ ' + Math.round(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtRound(n) {
+  const sign = n >= 0 ? '+ ' : '- ';
+  return sign + '₹ ' + Math.abs(n).toFixed(2);
+}
+
+function calculate() {
+  const qtyInput = document.getElementById('qty').value;
+  const qty = qtyInput === '' ? 0 : parseFloat(qtyInput);
+  const q = isNaN(qty) ? 0 : qty;
+
+  // PAN MASALA
+  const pmTaxable = RATES.panMasala.taxableValue * q;
+  const pmMrp = RATES.panMasala.mrp * q;
+  const pmCgst = pmMrp * 20 / 140;
+  const pmSgst = pmMrp * 20 / 140;
+  const pmRawTotal = pmTaxable + pmCgst + pmSgst;
+  const pmTotal = Math.round(pmRawTotal); // Fixed: 19,680 per bag
+  const pmRoundOff = pmTotal - pmRawTotal;
+
+  document.getElementById('pm_taxable').textContent = fmt(pmTaxable);
+  document.getElementById('pm_cgst').textContent = fmt(pmCgst);
+  document.getElementById('pm_sgst').textContent = fmt(pmSgst);
+  document.getElementById('pm_round').textContent = fmtRound(pmRoundOff);
+  document.getElementById('pm_total').textContent = fmtWhole(pmTotal);
+
+  // SCENTED TOBACCO
+  const stTaxable = RATES.scentedTobacco.taxableValue * q;
+  const stNccd = RATES.scentedTobacco.nccd * q;
+  const stTotalTaxable = stTaxable + stNccd;
+  const stMrp = RATES.scentedTobacco.mrp * q;
+  const stCgst = stMrp * 20 / 140;
+  const stSgst = stMrp * 20 / 140;
+  const stRawTotal = stTotalTaxable + stCgst + stSgst;
+  const stTotal = Math.round(stRawTotal); // Fixed: 4,920 per bag
+  const stRoundOff = stTotal - stRawTotal;
+
+  document.getElementById('st_taxable').textContent = fmt(stTaxable);
+  document.getElementById('st_nccd').textContent = fmt(stNccd);
+  document.getElementById('st_total_taxable').textContent = fmt(stTotalTaxable);
+  document.getElementById('st_cgst').textContent = fmt(stCgst);
+  document.getElementById('st_sgst').textContent = fmt(stSgst);
+  document.getElementById('st_round').textContent = fmtRound(stRoundOff);
+  document.getElementById('st_total').textContent = fmtWhole(stTotal);
+}
+
+calculate();
+</script>
+</body>
+</html>
